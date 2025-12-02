@@ -65,6 +65,18 @@ try {
 
         if ((isset($_POST['memberFlag']) && $_POST['memberFlag'] === 'true')
             || $leadership) {
+            // Check age constraint before adding member
+            if (!$role->userMeetsAgeConstraint($user)) {
+                $ageConstraint = $role->getValue('rol_age_constraint');
+                throw new Exception('SYS_USER_NOT_MEETING_AGE_CONSTRAINT', array($user->getValue('FIRST_NAME') . ' ' . $user->getValue('LAST_NAME'), $ageConstraint));
+            }
+            
+            // Check mutually exclusive group constraint
+            $conflictingRole = $role->userHasMutuallyExclusiveMembership($user->getValue('usr_id'));
+            if ($conflictingRole !== null) {
+                throw new Exception('SYS_USER_ALREADY_IN_EXCLUSIVE_GROUP', array($user->getValue('FIRST_NAME') . ' ' . $user->getValue('LAST_NAME'), $conflictingRole['rol_name']));
+            }
+            
             $role->startMembership($user->getValue('usr_id'), $leadership);
         } else {
             $role->stopMembership($user->getValue('usr_id'));
