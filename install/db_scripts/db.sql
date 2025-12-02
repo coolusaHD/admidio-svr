@@ -779,6 +779,8 @@ CREATE TABLE %PREFIX%_roles
     rol_valid                   boolean             NOT NULL    DEFAULT true,
     rol_system                  boolean             NOT NULL    DEFAULT false,
     rol_administrator           boolean             NOT NULL    DEFAULT false,
+    rol_age_constraint          varchar(100),
+    rol_mutually_exclusive_group varchar(100),
     PRIMARY KEY (rol_id)
 )
 ENGINE = InnoDB

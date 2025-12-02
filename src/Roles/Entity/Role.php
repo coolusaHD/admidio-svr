@@ -831,6 +831,162 @@ class Role extends Entity
     }
 
     /**
+     * Check if a user meets the age constraint for this role.
+     * @param User $user User object to check
+     * @return bool Returns true if user meets the age constraint or if no constraint is set
+     * @throws Exception
+     */
+    public function userMeetsAgeConstraint(User $user): bool
+    {
+        $ageConstraint = $this->getValue('rol_age_constraint');
+        
+        if (empty($ageConstraint)) {
+            return true; // No constraint set
+        }
+        
+        $birthday = $user->getValue('BIRTHDAY');
+        if (empty($birthday)) {
+            return false; // Cannot validate without birthday
+        }
+        
+        try {
+            $birthdayDate = DateTime::createFromFormat('Y-m-d', $birthday);
+            if (!$birthdayDate) {
+                return false;
+            }
+            
+            $today = new DateTime();
+            $age = $today->diff($birthdayDate)->y;
+            
+            // Parse the constraint (e.g., "<18", ">=18", "18-25")
+            $constraint = trim($ageConstraint);
+            
+            // Handle range format (e.g., "18-25")
+            if (preg_match('/^(\d+)\s*-\s*(\d+)$/', $constraint, $matches)) {
+                $minAge = (int)$matches[1];
+                $maxAge = (int)$matches[2];
+                return $age >= $minAge && $age <= $maxAge;
+            }
+            
+            // Handle comparison operators
+            if (preg_match('/^([<>=]+)\s*(\d+)$/', $constraint, $matches)) {
+                $operator = $matches[1];
+                $targetAge = (int)$matches[2];
+                
+                switch ($operator) {
+                    case '<':
+                        return $age < $targetAge;
+                    case '<=':
+                        return $age <= $targetAge;
+                    case '>':
+                        return $age > $targetAge;
+                    case '>=':
+                        return $age >= $targetAge;
+                    case '=':
+                    case '==':
+                        return $age == $targetAge;
+                    default:
+                        return false;
+                }
+            }
+            
+            // Handle simple number (exact age)
+            if (preg_match('/^\d+$/', $constraint)) {
+                return $age == (int)$constraint;
+            }
+            
+            return false;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get all members who do not meet the age constraint for this role.
+     * @return array Array of user IDs and their details who don't meet the constraint
+     * @throws Exception
+     */
+    public function getMembersViolatingAgeConstraint(): array
+    {
+        global $gProfileFields;
+        
+        $ageConstraint = $this->getValue('rol_age_constraint');
+        if (empty($ageConstraint)) {
+            return array();
+        }
+        
+        $violatingMembers = array();
+        
+        // Get all active members of this role
+        $sql = 'SELECT mem_usr_id
+                  FROM ' . TBL_MEMBERS . '
+                 WHERE mem_rol_id = ? -- $this->getValue(\'rol_id\')
+                   AND mem_begin <= ? -- DATE_NOW
+                   AND mem_end    > ? -- DATE_NOW';
+        $pdoStatement = $this->db->queryPrepared($sql, array((int)$this->getValue('rol_id'), DATE_NOW, DATE_NOW));
+        
+        while ($userId = $pdoStatement->fetchColumn()) {
+            $user = new User($this->db, $gProfileFields, (int)$userId);
+            
+            if (!$this->userMeetsAgeConstraint($user)) {
+                $violatingMembers[] = array(
+                    'usr_id' => $userId,
+                    'usr_uuid' => $user->getValue('usr_uuid'),
+                    'first_name' => $user->getValue('FIRST_NAME'),
+                    'last_name' => $user->getValue('LAST_NAME'),
+                    'birthday' => $user->getValue('BIRTHDAY')
+                );
+            }
+        }
+        
+        return $violatingMembers;
+    }
+
+    /**
+     * Check if user is already member of another role in the same mutually exclusive group.
+     * @param int $userId ID of the user to check
+     * @return array|null Returns role data if user is member of another role in the group, null otherwise
+     * @throws Exception
+     */
+    public function userHasMutuallyExclusiveMembership(int $userId): ?array
+    {
+        $mutuallyExclusiveGroup = $this->getValue('rol_mutually_exclusive_group');
+        
+        if (empty($mutuallyExclusiveGroup)) {
+            return null; // No mutually exclusive group set
+        }
+        
+        // Find all roles in the same mutually exclusive group
+        $sql = 'SELECT rol_id, rol_name, rol_uuid
+                  FROM ' . TBL_ROLES . '
+             INNER JOIN ' . TBL_CATEGORIES . '
+                     ON cat_id = rol_cat_id
+                 WHERE rol_mutually_exclusive_group = ? -- $mutuallyExclusiveGroup
+                   AND rol_id <> ? -- $this->getValue(\'rol_id\')
+                   AND rol_valid = true
+                   AND (  cat_org_id = ? -- $GLOBALS[\'gCurrentOrgId\']
+                       OR cat_org_id IS NULL )';
+        $rolesStatement = $this->db->queryPrepared($sql, array($mutuallyExclusiveGroup, (int)$this->getValue('rol_id'), $GLOBALS['gCurrentOrgId']));
+        
+        while ($roleRow = $rolesStatement->fetch()) {
+            // Check if user is active member of this role
+            $sql = 'SELECT COUNT(*) AS count
+                      FROM ' . TBL_MEMBERS . '
+                     WHERE mem_rol_id = ? -- $roleRow[\'rol_id\']
+                       AND mem_usr_id = ? -- $userId
+                       AND mem_begin <= ? -- DATE_NOW
+                       AND mem_end    > ? -- DATE_NOW';
+            $memberStatement = $this->db->queryPrepared($sql, array($roleRow['rol_id'], $userId, DATE_NOW, DATE_NOW));
+            
+            if ($memberStatement->fetchColumn() > 0) {
+                return $roleRow;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
      * Toggle the valid status of a role. The role could be set to inactive or active again.
      * @param bool $status Valid status that should be set.
      * @throws Exception
