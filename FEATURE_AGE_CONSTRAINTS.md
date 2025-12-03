@@ -84,4 +84,4 @@ The following new language strings were added to support this feature:
 - `Role::userMeetsAgeConstraint(User $user)` - Validates if a user meets the age constraint
 - `Role::getMembersViolatingAgeConstraint()` - Returns list of members not meeting constraint
 - `Role::userHasMutuallyExclusiveMembership(int $userId)` - Checks for conflicting memberships
-- `GroupsRolesPresenter::createCheckMembersDialog()` - Creates the validation dialog UI
+- `GroupsRolesPresenter::createCheckMembersDialog(Role $role, array $violatingMembers)` - Creates the validation dialog UI
