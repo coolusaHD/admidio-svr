@@ -220,6 +220,9 @@
   <string name="SYS_ADDITIONAL_CSS_FILE_DESC">The path to a .css file with additional style definitions. This file will be loaded last, even after the theme's admidio.css file. (default: empty)</string>
   <string name="SYS_ADDITIONAL_FILES">This list intends to provide an overview of files and folders not imported into the database yet. They can be added to the database. Access rights will be copied from selected folder.</string>
   <string name="SYS_ADDRESS">Address</string>
+  <string name="SYS_AGE">Age</string>
+  <string name="SYS_AGE_CONSTRAINT">Age constraint</string>
+  <string name="SYS_AGE_CONSTRAINT_DESC">Define an age constraint for this role (e.g., "&lt;18" for under 18, ">=18" for 18 and older, "18-25" for range). Leave empty for no constraint.</string>
   <string name="SYS_ADMIDIO">Admidio</string>
   <string name="SYS_ADMIDIO_DOWNLOAD_PAGE">Go to the Admidio download page</string>
   <string name="SYS_ADMIDIO_HEADLINE_DESC">The headline is displayed in the navigation bar of Admidio. Here you can also enter the name of a translation string. (default: SYS_ONLINE_MEMBERSHIP_ADMINISTRATION)</string>
@@ -239,6 +242,7 @@
   <string name="SYS_ALL_CONTACTS">All contacts</string>
   <string name="SYS_ALL_DAY">Full time</string>
   <string name="SYS_ALL_MEMBERS">All members</string>
+  <string name="SYS_ALL_MEMBERS_MEET_CONSTRAINT">All members meet the age constraint.</string>
   <string name="SYS_ALL_ORGANIZATIONS">All organizations</string>
   <string name="SYS_ALL_ORGANIZATIONS_DESC">The selected category is shared for all organizations.\nThe current object (event, announcement, profile field, web link, etc.) will be visible not only in this organization but also in all the following organizations: #VAR1#.</string>
   <string name="SYS_ALL_OTHERS">All others</string>
@@ -331,6 +335,7 @@
   <string name="SYS_CHARACTER_ENCODING_DESC">Character encoding used in e-mails sent by Admidio. Not all e-mail clients are able to process UTF-8. Therefore ISO-8859-1 can be set here alternatively.</string>
   <string name="SYS_CHARACTERS">Characters</string>
   <string name="SYS_CHECK_FOR_UPDATE">Check for update</string>
+  <string name="SYS_CHECK_AGE_CONSTRAINT">Check age constraint</string>
   <string name="SYS_CHECKBOX">Checkbox</string>
   <string name="SYS_CHECKBOX_AUTOSAVE">Checkbox status is saved automatically after marking.</string>
   <string name="SYS_CHOOSE_FILE">Select file</string>
@@ -1021,6 +1026,7 @@
   <string name="SYS_MEMBERS_PER_PAGE">Members displayed per page</string>
   <string name="SYS_MEMBERS_PER_PAGE_DESC">Number of members listed in the HTML view. More members can be listed by using the pagination function. This value won\'t affect print preview and export functionality (Default: 25).</string>
   <string name="SYS_MEMBERS_SIMILAR_NAME">Found #VAR1# members with a similar name.</string>
+  <string name="SYS_MEMBERS_NOT_MEETING_CONSTRAINT">#VAR1# member(s) do not meet the age constraint.</string>
   <string name="SYS_MEMBERSHIP_APPROVED">Membership approved</string>
   <string name="SYS_MEMBERSHIP_DELETE">Would you like to end membership in role #VAR1_BOLD#?</string>
   <string name="SYS_MEMBERSHIP_DURATION">Duration of membership</string>
@@ -1060,6 +1066,8 @@
   <string name="SYS_MULTIPLE_RECIPIENTS">Multiple recipients</string>
   <string name="SYS_MULTIPLE_RECIPIENTS_DESC">E-mails to multiple recipients contain all recipients in the BCC field. This ensures that nobody sees the e-mail addresses of the other recipients. However, the TO field must also be filled. This setting can be used to define what is entered in the recipient (TO) field. This could be a hidden value "Undisclosed Recipients", but this causes problems with some providers. Alternatively the recipient field (TO) can be filled with the sender address or the administrator address from the system notifications. Note: All emails to multiple recipients will then also be sent to the email address in the recipient field (TO). (Default: Sender)</string>
   <string name="SYS_MUST_HAVE_ADMINISTRATOR">The role \'administrator\' must have at least one member assigned!</string>
+  <string name="SYS_MUTUALLY_EXCLUSIVE_GROUP">Mutually exclusive group</string>
+  <string name="SYS_MUTUALLY_EXCLUSIVE_GROUP_DESC">Set a group name (e.g., "membership_fees") to ensure members can only be in one role from this group at a time. All roles with the same group name will be mutually exclusive.</string>
   <string name="SYS_MY_PROFILE">My profile</string>
   <string name="SYS_MYLIST_CONDITION_DESC">Here you can define conditions for each field in your list. This will further restrict the determined members of the selected role with your conditions.</string>
   <string name="SYS_NAME">Name</string>
@@ -1699,6 +1707,8 @@
   <string name="SYS_USER_RELATION_TYPE">Relationship type</string>
   <string name="SYS_USER_RELATIONS">Relationships</string>
   <string name="SYS_USER_VALID_LOGIN">User already has valid login information.</string>
+  <string name="SYS_USER_NOT_MEETING_AGE_CONSTRAINT">User #VAR1_BOLD# does not meet the age constraint "#VAR2#" for this role.</string>
+  <string name="SYS_USER_ALREADY_IN_EXCLUSIVE_GROUP">User #VAR1_BOLD# is already a member of role "#VAR2#" which is in the same mutually exclusive group.</string>
   <string name="SYS_USERNAME">Username</string>
   <string name="SYS_USERNAME_DESCRIPTION">You can log in to the system with this name.\nThe name must be unique in the system. If your desired name is already taken, try combinations such as Andi78 or SteveT.</string>
   <string name="SYS_USERNAME_OR_EMAIL">Username or E-mail</string>

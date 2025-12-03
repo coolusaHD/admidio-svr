@@ -100,6 +100,15 @@ class GroupsRolesPresenter extends PagePresenter
                     'icon' => 'bi bi-person-plus',
                     'tooltip' => $gL10n->get('SYS_ASSIGN_MEMBERS')
                 );
+                
+                // Add check members button if age constraint is set
+                if (!empty($role->getValue('rol_age_constraint'))) {
+                    $templateRow['actions'][] = array(
+                        'url' => SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/groups-roles/groups_roles.php', array('mode' => 'check_members', 'role_uuid' => $row['rol_uuid'])),
+                        'icon' => 'bi bi-person-check',
+                        'tooltip' => $gL10n->get('SYS_CHECK_AGE_CONSTRAINT')
+                    );
+                }
             }
 
             if ($gCurrentUser->isAdministratorRoles()) {
@@ -234,6 +243,51 @@ class GroupsRolesPresenter extends PagePresenter
         $this->smarty->assign('cards', $templateDataCategory);
         $this->smarty->assign('l10n', $gL10n);
         $this->pageContent .= $this->smarty->fetch('modules/groups-roles.cards.tpl');
+    }
+
+    /**
+     * Create a dialog showing members who violate the age constraint.
+     * @param Role $role Role object
+     * @param array $violatingMembers Array of members who don't meet the age constraint
+     * @throws \Smarty\Exception
+     * @throws Exception
+     */
+    public function createCheckMembersDialog(Role $role, array $violatingMembers): void
+    {
+        global $gL10n, $gSettingsManager;
+
+        $this->addJavascript('
+            $(".admidio-open-close-caret").click(function() {
+                showHideBlock($(this).attr("id"));
+            });
+        ', true);
+
+        $this->assignSmartyVariable('roleName', $role->getValue('rol_name'));
+        $this->assignSmartyVariable('ageConstraint', $role->getValue('rol_age_constraint'));
+        $this->assignSmartyVariable('violatingMembersCount', count($violatingMembers));
+
+        $templateData = array();
+        foreach ($violatingMembers as $member) {
+            $age = '';
+            if (!empty($member['birthday'])) {
+                $birthdayDate = DateTime::createFromFormat('Y-m-d', $member['birthday']);
+                if ($birthdayDate) {
+                    $today = new DateTime();
+                    $age = $today->diff($birthdayDate)->y;
+                }
+            }
+
+            $templateData[] = array(
+                'uuid' => $member['usr_uuid'],
+                'name' => $member['first_name'] . ' ' . $member['last_name'],
+                'birthday' => $member['birthday'] ? DateTime::createFromFormat('Y-m-d', $member['birthday'])->format($gSettingsManager->getString('system_date')) : '',
+                'age' => $age,
+                'profileUrl' => SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/profile/profile.php', array('user_uuid' => $member['usr_uuid']))
+            );
+        }
+
+        $this->assignSmartyVariable('members', $templateData);
+        $this->pageContent .= $this->smarty->fetch('modules/groups-roles.check-members.tpl');
     }
 
     /**
@@ -441,6 +495,18 @@ class GroupsRolesPresenter extends PagePresenter
                 $gL10n->get('SYS_CONTRIBUTION_PERIOD'),
                 Role::getCostPeriods(),
                 array('defaultValue' => $role->getValue('rol_cost_period'), 'class' => 'form-control-small')
+            );
+            $form->addInput(
+                'rol_age_constraint',
+                $gL10n->get('SYS_AGE_CONSTRAINT'),
+                $role->getValue('rol_age_constraint'),
+                array('maxLength' => 100, 'helpTextId' => 'SYS_AGE_CONSTRAINT_DESC')
+            );
+            $form->addInput(
+                'rol_mutually_exclusive_group',
+                $gL10n->get('SYS_MUTUALLY_EXCLUSIVE_GROUP'),
+                $role->getValue('rol_mutually_exclusive_group'),
+                array('maxLength' => 100, 'helpTextId' => 'SYS_MUTUALLY_EXCLUSIVE_GROUP_DESC')
             );
         }
 

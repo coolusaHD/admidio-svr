@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<update>
+    <step id="10">ALTER TABLE %PREFIX%_roles ADD COLUMN rol_age_constraint varchar(100)</step>
+    <step id="20">ALTER TABLE %PREFIX%_roles ADD COLUMN rol_mutually_exclusive_group varchar(100)</step>
+</update>

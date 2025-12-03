@@ -36,7 +36,7 @@ try {
     require_once(__DIR__ . '/../../system/common.php');
 
     // Initialize and check the parameters
-    $getMode     = admFuncVariableIsValid($_GET, 'mode', 'string', array('defaultValue' => 'cards', 'validValues' => array('cards', 'permissions', 'edit', 'save', 'delete', 'activate', 'deactivate', 'export')));
+    $getMode     = admFuncVariableIsValid($_GET, 'mode', 'string', array('defaultValue' => 'cards', 'validValues' => array('cards', 'permissions', 'edit', 'save', 'delete', 'activate', 'deactivate', 'export', 'check_members')));
     $getCategoryUUID  = admFuncVariableIsValid($_GET, 'cat_uuid', 'uuid');
     $getRoleUUID = admFuncVariableIsValid($_GET, 'role_uuid', 'uuid');
     $getRoleType = admFuncVariableIsValid($_GET, 'role_type', 'int', array('defaultValue' => 1));
@@ -176,6 +176,23 @@ try {
             // Export every member of a role into one vCard file
             $rolesService = new RolesService($gDb, $getRoleUUID);
             $rolesService->export();
+            break;
+
+        case 'check_members':
+            // Check members against age constraint
+            $role = new Role($gDb);
+            $role->readDataByUuid($getRoleUUID);
+            
+            if (!$role->allowedToAssignMembers($gCurrentUser)) {
+                throw new Exception('SYS_NO_RIGHTS');
+            }
+            
+            $violatingMembers = $role->getMembersViolatingAgeConstraint();
+            
+            $gNavigation->addUrl(CURRENT_URL, $gL10n->get('SYS_CHECK_AGE_CONSTRAINT'));
+            $groupsRoles = new GroupsRolesPresenter('adm_groups_roles_check', $gL10n->get('SYS_CHECK_AGE_CONSTRAINT'));
+            $groupsRoles->createCheckMembersDialog($role, $violatingMembers);
+            $groupsRoles->show();
             break;
     }
 } catch (Throwable $e) {
